@@ -27,14 +27,24 @@ Script PHP untuk membuat shortlink seperti Bitly yang **AMAN** untuk traffic tin
 
 ```
 shortlink-generator/
-├── index.php          # Halaman login
-├── panel.php          # Panel admin untuk membuat shortlink
-├── functions.php      # Fungsi-fungsi helper
-├── redirect.php       # Handler untuk redirect shortlink
-├── .htaccess          # URL rewriting rules
-├── data/              # Folder untuk menyimpan data JSON
-│   └── shortlinks.json # File data shortlinks (auto-generated)
-└── README.md          # Dokumentasi
+├── .git/                   # Git repository
+├── .gitignore             # Git ignore rules
+├── .htaccess              # Apache URL rewriting rules
+├── composer.json          # PHP dependencies & scripts
+├── deploy.sh              # Automated deployment script
+├── index.php              # Login page
+├── panel.php              # Admin panel untuk membuat shortlink
+├── functions.php          # Fungsi-fungsi helper (optimized)
+├── redirect.php           # Handler untuk redirect shortlink
+├── sync_stats.php         # Cron job untuk sync statistics
+├── monitor.php            # Real-time monitoring system
+├── GIT_FIX.md            # Git troubleshooting guide
+├── data/                  # Folder untuk menyimpan data JSON
+│   ├── .gitkeep          # Keep folder in git
+│   ├── shortlinks.json   # File data shortlinks (auto-generated)
+│   ├── stats.json        # Click statistics (auto-generated)
+│   └── rate_limit.json   # Rate limiting data (auto-generated)
+└── README.md              # Dokumentasi lengkap
 ```
 
 ## Instalasi
@@ -95,10 +105,53 @@ chmod +x sync_stats.php
 
 ## Konfigurasi untuk Laravel Forge
 
+### 🚀 Quick Deploy Commands
+
+```bash
+# 1. Clone repository
+git clone git@github.com:albertosd3/main.git yoursite.com
+cd yoursite.com
+
+# 2. Install dependencies
+composer install --no-dev --optimize-autoloader
+
+# 3. Run deployment script
+chmod +x deploy.sh
+./deploy.sh
+
+# 4. Verify installation
+php monitor.php?key=GP666
+```
+
+### 📋 Manual Setup (Alternative)
+
 1. Set document root ke folder project ini
 2. Pastikan PHP versi 8.3
 3. Enable Apache mod_rewrite
 4. Set permission folder `data/` ke 755
+5. Setup cron job: `*/5 * * * * php /home/forge/yoursite.com/sync_stats.php`
+
+### 🔧 Laravel Forge Configuration
+
+1. **Site Settings**:
+   - PHP Version: 8.3
+   - Web Directory: `/` (root)
+   - SSL Certificate: Enable
+
+2. **Environment Variables**: None required
+
+3. **Scheduled Jobs** (Cron):
+   ```
+   */5 * * * * php /home/forge/yoursite.com/sync_stats.php
+   ```
+
+4. **Deployment Script**:
+   ```bash
+   cd /home/forge/yoursite.com
+   git pull origin main
+   composer install --no-dev --optimize-autoloader
+   ./deploy.sh
+   ```
 
 ## Keamanan
 
@@ -129,6 +182,7 @@ chmod +x sync_stats.php
 
 ## Troubleshooting
 
+### 🐛 General Issues
 1. **404 Error**: Pastikan mod_rewrite aktif
 2. **Permission Error**: Set permission folder `data/` ke 755
 3. **JSON Error**: Pastikan folder `data/` writable
@@ -136,6 +190,28 @@ chmod +x sync_stats.php
 5. **Rate Limit Error**: Normal untuk mencegah abuse
 6. **High Memory Usage**: Monitor ukuran file JSON
 7. **Concurrent Access Error**: File locking akan handle otomatis
+
+### 🔧 Laravel Forge Specific
+8. **Composer Error**: Run `composer install` in site directory
+9. **Cron Job Not Working**: Check Laravel Forge Scheduled Jobs
+10. **Permission Denied**: Run `./deploy.sh` after git pull
+11. **SSL Issues**: Enable SSL in Laravel Forge site settings
+12. **Domain Not Working**: Check DNS and Laravel Forge domain settings
+
+### 📊 Monitoring Commands
+```bash
+# Check application status
+php monitor.php?key=GP666
+
+# Check file permissions
+ls -la data/
+
+# Check cron jobs
+crontab -l
+
+# Check logs
+tail -f /var/log/nginx/yoursite.com-error.log
+```
 
 ## Benchmarks
 

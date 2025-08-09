@@ -1,0 +1,46 @@
+{
+    "name": "shortlink-generator/app",
+    "description": "High-performance shortlink generator like Bitly - optimized for high traffic",
+    "type": "project",
+    "keywords": ["shortlink", "url-shortener", "bitly", "php", "laravel-forge"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Developer",
+            "email": "dev@example.com"
+        }
+    ],
+    "require": {
+        "php": "^8.3"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.0"
+    },
+    "autoload": {
+        "files": [
+            "functions.php"
+        ]
+    },
+    "scripts": {
+        "post-install-cmd": [
+            "@setup-permissions"
+        ],
+        "post-update-cmd": [
+            "@setup-permissions"
+        ],
+        "setup-permissions": [
+            "mkdir -p data",
+            "chmod 755 data",
+            "chmod +x sync_stats.php"
+        ],
+        "sync-stats": "php sync_stats.php",
+        "monitor": "php monitor.php?key=GP666"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
