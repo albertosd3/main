@@ -135,23 +135,97 @@ php monitor.php?key=GP666
 
 1. **Site Settings**:
    - PHP Version: 8.3
-   - Web Directory: `/` (root)
+   - Web Directory: `/` (root, BUKAN `/public`)
    - SSL Certificate: Enable
 
-2. **Environment Variables**: None required
+2. **Nginx Configuration Fix**:
+   ```nginx
+   # Edit di Laravel Forge → Sites → Edit Files → Edit Nginx Configuration
+   root /home/forge/yoursite.com;
+   index index.php index.html;
+   
+   location / {
+       try_files $uri $uri/ /index.php?$query_string;
+   }
+   ```
 
-3. **Scheduled Jobs** (Cron):
+3. **Environment Variables**: None required
+
+4. **Scheduled Jobs** (Cron):
    ```
    */5 * * * * php /home/forge/yoursite.com/sync_stats.php
    ```
 
-4. **Deployment Script**:
+5. **Deployment Script** (Copy-paste ini ke Laravel Forge):
    ```bash
-   cd /home/forge/yoursite.com
-   git pull origin main
-   composer install --no-dev --optimize-autoloader
-   ./deploy.sh
+   cd /home/forge/default
+   git pull origin $FORGE_SITE_BRANCH
+   
+   # Check if composer.json exists, if not create it
+   if [ ! -f "composer.json" ]; then
+       echo "Creating composer.json..."
+       cat > composer.json << 'EOF'
+{
+    "name": "shortlink-generator/app",
+    "description": "High-performance shortlink generator like Bitly",
+    "type": "project",
+    "require": {
+        "php": "^8.3"
+    },
+    "autoload": {
+        "files": ["functions.php"]
+    },
+    "scripts": {
+        "setup-permissions": [
+            "mkdir -p data",
+            "chmod 755 data",
+            "chmod +x sync_stats.php"
+        ]
+    }
+}
+EOF
+   fi
+   
+   # Install composer dependencies
+   composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
+   
+   # Set proper permissions
+   chmod 755 .
+   chmod 644 *.php
+   chmod 644 .htaccess
+   chmod +x deploy.sh 2>/dev/null || true
+   chmod +x sync_stats.php 2>/dev/null || true
+   mkdir -p data
+   chmod 755 data
+   
+   # Create initial data files
+   if [ ! -f "data/shortlinks.json" ]; then
+       echo "{}" > data/shortlinks.json
+   fi
+   if [ ! -f "data/stats.json" ]; then
+       echo "{}" > data/stats.json
+   fi
+   if [ ! -f "data/rate_limit.json" ]; then
+       echo "{}" > data/rate_limit.json
+   fi
+   
+   # Fix ownership
+   sudo chown -R forge:forge . 2>/dev/null || true
+   sudo chown -R www-data:www-data data/ 2>/dev/null || true
+   
+   echo "✅ Deployment completed successfully!"
    ```
+
+### 🚨 **Fix "No input file specified" Error:**
+
+```bash
+# SSH ke server Laravel Forge dan jalankan:
+cd /home/forge/yoursite.com
+chmod 755 .
+chmod 644 *.php
+sudo chown -R forge:forge .
+sudo chown -R www-data:www-data data/
+```
 
 ## Keamanan
 
@@ -200,17 +274,22 @@ php monitor.php?key=GP666
 
 ### 📊 Monitoring Commands
 ```bash
-# Check application status
-php monitor.php?key=GP666
+# Check application status (via web)
+curl https://yoursite.com/monitor.php?key=GP666
 
 # Check file permissions
-ls -la data/
+ls -la /home/forge/yoursite.com/
+ls -la /home/forge/yoursite.com/data/
 
 # Check cron jobs
 crontab -l
 
-# Check logs
+# Check Nginx logs
 tail -f /var/log/nginx/yoursite.com-error.log
+
+# Fix permissions if needed
+sudo chown -R forge:forge /home/forge/yoursite.com/
+sudo chown -R www-data:www-data /home/forge/yoursite.com/data/
 ```
 
 ## Benchmarks

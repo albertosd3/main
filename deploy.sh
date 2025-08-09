@@ -1,11 +1,17 @@
 #!/bin/bash
 
-echo "🚀 Starting Shortlink Generator Deployment..."
+echo "🚀 Starting Shortlink Generator Deployment for Laravel Forge..."
+
+# Ensure we're in the correct directory
+cd /home/forge/$(basename "$PWD")
 
 # Set proper permissions
 echo "📁 Setting up permissions..."
 mkdir -p data
 chmod 755 data
+chmod 755 .
+chmod 644 *.php
+chmod 644 .htaccess
 chmod +x sync_stats.php
 
 # Create necessary data files if they don't exist
@@ -24,17 +30,14 @@ if [ ! -f "data/rate_limit.json" ]; then
     chmod 644 data/rate_limit.json
 fi
 
-# Setup cron job for stats synchronization
-echo "⏰ Setting up cron job..."
-CRON_JOB="*/5 * * * * php $(pwd)/sync_stats.php >/dev/null 2>&1"
-
-# Add to crontab if not already present
-(crontab -l 2>/dev/null | grep -q "sync_stats.php") || (crontab -l 2>/dev/null; echo "$CRON_JOB") | crontab -
+# Fix ownership (important for Laravel Forge)
+sudo chown -R forge:forge .
+sudo chown -R www-data:www-data data/
 
 echo "✅ Deployment completed successfully!"
 echo ""
-echo "📊 Monitor your application at: https://yoursite.com/monitor.php?key=GP666"
+echo "🌐 Access your site at: https://$(basename "$PWD")"
 echo "🔑 Admin panel password: GP666"
-echo "📚 Documentation: README.md"
+echo "� Monitor at: https://$(basename "$PWD")/monitor.php?key=GP666"
 echo ""
-echo "🎉 Shortlink Generator is ready for high traffic!"
+echo "🎉 Shortlink Generator is ready!"

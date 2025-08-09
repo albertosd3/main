@@ -1,10 +1,16 @@
 RewriteEngine On
 
+# Handle root access - redirect to index.php
+RewriteRule ^$ index.php [L]
+
 # Prevent access to data directory
 RewriteRule ^data/ - [F,L]
 
 # Prevent access to functions.php directly
 RewriteRule ^functions\.php$ - [F,L]
+
+# Prevent access to sensitive files
+RewriteRule ^(composer\.json|composer\.lock|deploy\.sh|sync_stats\.php|monitor\.php)$ - [F,L]
 
 # Allow access to index.php and panel.php
 RewriteRule ^(index\.php|panel\.php)$ - [L]
@@ -12,7 +18,4 @@ RewriteRule ^(index\.php|panel\.php)$ - [L]
 # Redirect everything else to redirect.php for shortlink handling
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*)$ redirect.php [QSA,L]
-
-# Handle root access - redirect to index.php
-RewriteRule ^$ index.php [L]
+RewriteRule ^(.+)$ redirect.php [QSA,L]
