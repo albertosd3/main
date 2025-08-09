@@ -141,11 +141,39 @@ php monitor.php?key=GP666
 2. **Nginx Configuration Fix**:
    ```nginx
    # Edit di Laravel Forge → Sites → Edit Files → Edit Nginx Configuration
-   root /home/forge/yoursite.com;
-   index index.php index.html;
+   # PENTING: Hapus semua isi file dan replace dengan ini:
    
-   location / {
-       try_files $uri $uri/ /index.php?$query_string;
+   server {
+       listen 80;
+       listen [::]:80;
+       server_name 107.155.112.162;
+       root /home/forge/default;
+       
+       add_header X-Frame-Options "SAMEORIGIN";
+       add_header X-Content-Type-Options "nosniff";
+       
+       index index.php index.html;
+       
+       charset utf-8;
+       
+       location / {
+           try_files $uri $uri/ /index.php?$query_string;
+       }
+       
+       location = /favicon.ico { access_log off; log_not_found off; }
+       location = /robots.txt  { access_log off; log_not_found off; }
+       
+       error_page 404 /index.php;
+       
+       location ~ \.php$ {
+           fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
+           fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+           include fastcgi_params;
+       }
+       
+       location ~ /\.(?!well-known).* {
+           deny all;
+       }
    }
    ```
 
@@ -269,27 +297,47 @@ sudo chown -R www-data:www-data data/
 8. **Composer Error**: Run `composer install` in site directory
 9. **Cron Job Not Working**: Check Laravel Forge Scheduled Jobs
 10. **Permission Denied**: Run `./deploy.sh` after git pull
-11. **SSL Issues**: Enable SSL in Laravel Forge site settings
-12. **Domain Not Working**: Check DNS and Laravel Forge domain settings
+11. **SSL Issues**: 
+    - Disable SSL sementara untuk testing
+    - Atau setup SSL certificate di Laravel Forge
+    - Akses via HTTP: `http://your-ip-address`
+12. **Domain Not Working**: Check DNS dan Laravel Forge domain settings
+13. **Site Can't Be Reached**: 
+    - Check Nginx configuration
+    - Verify site is running di Laravel Forge
+    - Test dengan `curl http://your-ip`
+14. **Provision Error "root: command not found"**:
+    - Edit Nginx config manual di Laravel Forge
+    - Copy full server block dari README
+    - Restart Nginx setelah edit config
 
 ### 📊 Monitoring Commands
 ```bash
+# Test akses basic (tanpa SSL)
+curl http://107.155.112.162
+
 # Check application status (via web)
-curl https://yoursite.com/monitor.php?key=GP666
+curl http://yoursite.com/monitor.php?key=GP666
+
+# Check if site is running
+curl -I http://107.155.112.162
 
 # Check file permissions
-ls -la /home/forge/yoursite.com/
-ls -la /home/forge/yoursite.com/data/
+ls -la /home/forge/default/
+ls -la /home/forge/default/data/
 
 # Check cron jobs
 crontab -l
 
 # Check Nginx logs
-tail -f /var/log/nginx/yoursite.com-error.log
+tail -f /var/log/nginx/default-error.log
+
+# Check if Nginx is running
+sudo systemctl status nginx
 
 # Fix permissions if needed
-sudo chown -R forge:forge /home/forge/yoursite.com/
-sudo chown -R www-data:www-data /home/forge/yoursite.com/data/
+sudo chown -R forge:forge /home/forge/default/
+sudo chown -R www-data:www-data /home/forge/default/data/
 ```
 
 ## Benchmarks
