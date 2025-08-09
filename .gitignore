@@ -1,0 +1,44 @@
+# Data files (auto-generated, jangan di-commit)
+data/*.json
+data/rate_limit.json
+data/stats.json
+data/shortlinks.json
+
+# Log files
+*.log
+error.log
+access.log
+
+# Temporary files
+*.tmp
+*.temp
+*.cache
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# PHP specific
+.env
+composer.phar
+vendor/
+
+# Backup files
+*.bak
+*.backup
+
+# Test files
+test.php
+debug.php
